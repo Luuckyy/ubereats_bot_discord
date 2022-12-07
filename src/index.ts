@@ -4,6 +4,7 @@ import { Command } from "./Command";
 import fs from 'node:fs';
 import path from 'node:path';
 import { uri } from "./env.json";
+import { checkTweets } from "./CheckTweets"; 
 
 const clientMongo = new MongoClient(uri);
 const commands:Collection<String,Command> = new Collection();
@@ -50,6 +51,8 @@ async function run() {
     clientDiscord.on("guildDelete", async guild => {
       await guildInfo.deleteOne({guildId:guild.id})
     });
+
+    await checkTweets(clientDiscord);
   } catch {
     // Ensures that the client will close when you finish/error
     await clientMongo.close();

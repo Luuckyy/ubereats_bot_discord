@@ -18,10 +18,11 @@ const ping:Command = {
             const database = clientMongo.db("ubereats_discord_bot");
             const guildInfo = database.collection("guildinfo");
             const filter = {guildId:guildId}
-            const query = { $set:{ channelId:channelId, roleId:roleId } };
+            const query = roleId ? { $set:{ channelId:channelId, roleId:roleId } } : { $set:{ channelId:channelId } };
             const response = await guildInfo.updateOne(filter,query);
             let text = response.acknowledged ? "✅" : "❌";
             await interaction.reply({content:`${text}`});
+            await clientMongo.close();
         }
 	},
 };

@@ -21,6 +21,7 @@ const ping:Command = {
             const response = await guildInfo.updateOne(filter,query);
             let text = response.acknowledged ? "✅" : "❌";
             await interaction.reply({content:`${text}`});
+            await clientMongo.close();
         }
 	},
 };
