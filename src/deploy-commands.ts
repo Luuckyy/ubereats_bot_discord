@@ -3,12 +3,12 @@ import { MongoClient } from "mongodb";
 import path from 'node:path';
 import fs from 'node:fs';
 import { Command } from './Command';
+import { uri } from "./env.json";
 
-const uri = "mongodb+srv://admub:<password>@cluster0.3o6cn.mongodb.net/?retryWrites=true&w=majority";
 const clientMongo = new MongoClient(uri);
 async function run() {
   try {
-    const database = clientMongo.db('discord_bot');
+    const database = clientMongo.db('ubereats_discord_bot');
     const env_var = database.collection('env');
     const discord_token = await env_var.findOne({field: 'DISCORD_TOKEN' });
     const clientId = await env_var.findOne({field: 'CLIENT_ID' });
@@ -21,23 +21,24 @@ async function run() {
         const filePath = path.join(commandsPath, file);
         const command:Command = await require(filePath);
         const d = await command.data();
+        console.log(d.name);
         commands.push(d.toJSON());
     }
 
     const rest = new REST({ version: '10' }).setToken(discord_token?.value);
 
     //Delete every command
-    rest.put(Routes.applicationGuildCommands(clientId?.value, guildId?.value), { body: [] })
+    await rest.put(Routes.applicationGuildCommands(clientId?.value, guildId?.value), { body: [] })
     .then(() => console.log('Successfully deleted all guild commands.'))
     .catch(console.error);
 
     // for global commands
-    rest.put(Routes.applicationCommands(clientId?.value), { body: [] })
+    await rest.put(Routes.applicationCommands(clientId?.value), { body: [] })
     .then(() => console.log('Successfully deleted all application commands.'))
     .catch(console.error);
 
 
-    rest.put(Routes.applicationCommands(clientId?.value), { body: commands })
+    await rest.put(Routes.applicationCommands(clientId?.value), { body: commands })
         .then((data:any) => console.log(`Successfully registered ${data.length} application commands.`))
         .catch(console.error);
 
@@ -53,7 +54,7 @@ async function run() {
         const d = await commandAdmin.data();
         commandsAdmin.push(d.toJSON());
     }
-    rest.put(Routes.applicationGuildCommands(clientId?.value,guildId?.value), { body: commandsAdmin })
+    await rest.put(Routes.applicationGuildCommands(clientId?.value,guildId?.value), { body: commandsAdmin })
         .then((data:any) => console.log(`Successfully registered ${data.length} application commands.`))
         .catch(console.error);
     
