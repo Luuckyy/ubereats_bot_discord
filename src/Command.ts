@@ -1,6 +1,6 @@
-import { SlashCommandBuilder,ChatInputCommandInteraction,Collection } from 'discord.js';
+import { SlashCommandBuilder,ChatInputCommandInteraction,Collection, AutocompleteInteraction, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
 
 export interface Command {
-    data: () => Promise<Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>>,
-    execute: (interaction:ChatInputCommandInteraction,commands:Collection<String,Command>) => Promise<void>
+    data: () => Promise<Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup"> | SlashCommandSubcommandsOnlyBuilder>,
+    execute: (interaction:(ChatInputCommandInteraction | AutocompleteInteraction),commands:Collection<String,Command>) => Promise<void>
 }

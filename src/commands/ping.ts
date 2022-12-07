@@ -1,4 +1,4 @@
-import { SlashCommandBuilder,ChatInputCommandInteraction,Collection } from 'discord.js';
+import { SlashCommandBuilder,ChatInputCommandInteraction,Collection, AutocompleteInteraction } from 'discord.js';
 import { Command } from '../Command';
 
 const ping:Command = {
@@ -6,7 +6,8 @@ const ping:Command = {
 		.setName('ping')
 		.setDescription('Replies with Pong!')
 	},
-	async execute(interaction:ChatInputCommandInteraction,commands:Collection<String,Command>) {
+	async execute(interaction:ChatInputCommandInteraction | AutocompleteInteraction,commands:Collection<String,Command>) {
+		if(interaction.isChatInputCommand())
 		await interaction.reply({content:'Pong!'});
 	},
 };
