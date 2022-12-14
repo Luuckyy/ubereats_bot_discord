@@ -15,7 +15,7 @@ export async function checkTweets(clientDiscord:Client){
     const ubereatstweets = await twitterClient.v1.userTimelineByUsername('ubereats_fr',{count:1,exclude_replies:true,include_rts:false});
     //Twitter v2 
     //const ubereatstweets = await readOnlyClient.v2.userTimeline(user.data.id, { exclude: 'replies',since_id:lastTweet?.tweetId,expansions:"referenced_tweets.id,author_id","tweet.fields":"created_at" });
-    const allTweets = ubereatstweets.tweets.filter(tweet => /\s*code\s*/.test(tweet.text));
+    const allTweets = ubereatstweets.tweets.filter(tweet => /\s*code\s*/.test(tweet.text) || /\s*Compo\s*/.test(tweet.text));
 
     if(allTweets.length > 0 && allTweets[0].id != lastTweet?.tweetId){
         let lastTweetUberEats = allTweets[0];
