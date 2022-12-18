@@ -2,24 +2,26 @@ import { uri,twitterBearerToken } from "./env.json"
 import { TwitterApi } from 'twitter-api-v2';
 import { MongoClient } from "mongodb";
 import { Client,EmbedBuilder,TextChannel,ActionRowBuilder,ButtonBuilder,ButtonStyle } from "discord.js";
+import { writeFileSync } from "fs";
 
 export async function checkTweets(clientDiscord:Client){
-    const clientMongo = new MongoClient(uri);
-    const database = clientMongo.db('ubereats_discord_bot');
-    const lastTweetCollection = database.collection('lastTweet');
-    const lastTweet = await lastTweetCollection.findOne();
+    delete require.cache[require.resolve('./tweetid.json')]
+    const {lastTweetId} = require('./tweetid.json');
+    console.log(lastTweetId)
 
     const twitterClient = new TwitterApi(twitterBearerToken);
     const readOnlyClient = twitterClient.readOnly;
     const user = await readOnlyClient.v2.userByUsername('ubereats_fr');
-    //const ubereatstweets = await twitterClient.v1.userTimelineByUsername('ubereats_fr',{count:5,exclude_replies:true,include_rts:false});
+    const ubereatstweets = await twitterClient.v1.userTimelineByUsername('ubereats_fr',{count:5,exclude_replies:true,include_rts:false});
     //Twitter v2 
-    const ubereatstweets = await readOnlyClient.v2.userTimeline(user.data.id, { exclude: 'replies',since_id:lastTweet?.tweetId,expansions:"referenced_tweets.id,author_id","tweet.fields":"created_at" });
-    const allTweets = ubereatstweets.tweets.filter(tweet => /\s*code\s*/.test(tweet.text) || /^LaCompo/.test(tweet.text));
+    //const ubereatstweets = await readOnlyClient.v2.userTimeline(user.data.id, { exclude: 'replies',since_id:lastTweetId,expansions:"referenced_tweets.id,author_id","tweet.fields":"created_at" });
+    const allTweets = ubereatstweets.tweets.filter(tweet => /\s*code\s*/.test(tweet.full_text || "") || /^LaCompo/.test(tweet.full_text || ""));
 
-    if(allTweets.length > 0 && allTweets[0].id != lastTweet?.tweetId){
+    console.log(allTweets)
+    if(allTweets.length > 0 && allTweets[0].id != lastTweetId){
+        const clientMongo = new MongoClient(uri);
+        const database = clientMongo.db('ubereats_discord_bot');
         let lastTweetUberEats = allTweets[0];
-        await lastTweetCollection.updateOne({},{$set:{tweetId:lastTweetUberEats.id}})
         const guildInfo = database.collection('guildinfo');
         const guilds = await (await guildInfo.find()).toArray();
         const row = new ActionRowBuilder<ButtonBuilder>()
@@ -45,7 +47,10 @@ export async function checkTweets(clientDiscord:Client){
                 })
             }
         }
+        const lastTweetCollection = database.collection('lastTweet');
+        await lastTweetCollection.updateOne({},{$set:{tweetId:lastTweetUberEats.id}})
+        await clientMongo.close();
+        writeFileSync('dist/tweetid.json',JSON.stringify({lastTweetId:`${lastTweetUberEats.id}`}));
     }
-    await clientMongo.close();
     setTimeout(async() => await checkTweets(clientDiscord),5000);
 }
