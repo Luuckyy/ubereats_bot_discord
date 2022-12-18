@@ -9,8 +9,9 @@ export async function checkTweets(clientDiscord:Client){
     delete require.cache[require.resolve('./tweetid.json')]
     const {lastTweetId} = require('./tweetid.json');
     const twitterClient = new TwitterApi(twitterBearerToken);
-    const readOnlyClient = twitterClient.readOnly;
-    const user = await readOnlyClient.v2.userByUsername('ubereats_fr');
+    //Twitter v2 
+    //const readOnlyClient = twitterClient.readOnly;
+    //const user = await readOnlyClient.v2.userByUsername('ubereats_fr');
     const ubereatstweets = await twitterClient.v1.userTimelineByUsername('ubereats_fr',{count:10,exclude_replies:true,include_rts:false});
     //Twitter v2 
     //const ubereatstweets = await readOnlyClient.v2.userTimeline(user.data.id, { exclude: 'replies',since_id:lastTweetId,expansions:"referenced_tweets.id,author_id","tweet.fields":"created_at" });
